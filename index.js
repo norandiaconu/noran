@@ -33,6 +33,13 @@ switch(process.argv[2]) {
   case "s":
     spawn("ng s --port=4201 --disable-host-check", inherit);
     break;
+  case "t":
+    if (!process.argv[3]) {
+      spawn("ng test", inherit);
+    } else {
+      spawn("ng test --include=**\\" + process.argv[3] + "\\*.spec.ts", inherit);
+    }
+    break;
   case "v":
     spawn("ng v", inherit);
     break;
@@ -69,7 +76,11 @@ switch(process.argv[2]) {
     spawn("yarn global list", inherit);
     break;
   case "yo":
-    spawn("yarn outdated", inherit);
+    spawn("yarn outdated", inherit).on("error", function(err) {
+      if (err.code !== "ENOENT") {
+        console.log(err);
+      }
+    });
     break;
   case "yr":
     if (process.argv[3]) {
@@ -90,6 +101,7 @@ switch(process.argv[2]) {
     log(red("  ng: ") + yellow("npm list ") + green("-g --depth=0"));
     log(red("  gc: ") + yellow("git cherry-pick ") + magenta("commit-hash"));
     log(red("   s: ") + yellow("ng serve ") + green("--port=4201 --disable-host-check"));
+    log(red("   t: ") + yellow("ng test ") + green("--include=**\\") + magenta("folder-name") + green("\\*.spec.ts"));
     log(red("   v: ") + yellow("ng version"));
     log(red("gadd: ") + yellow("yarn global add ") + magenta("package-name"));
     log(red("yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
