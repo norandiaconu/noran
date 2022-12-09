@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import spawn from "cross-spawn";
 import chalk from "chalk";
+import path from "path";
+import {fileURLToPath} from "url";
+import depcheck from 'depcheck';
 
 const inherit = { stdio: "inherit" };
 const log = console.log;
@@ -14,10 +17,20 @@ switch(process.argv[2]) {
     spawn("ng build", inherit);
     break;
   case "c":
-    spawn("cost-of-modules --no-install --include-dev", inherit);
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    spawn("yarn cost-of-modules --no-install --include-dev", { stdio: "inherit", cwd: __dirname });
     break;
   case "d":
-    spawn("depcheck --ignores @types/*", inherit);
+    depcheck(process.cwd(), { ignoreMatches: ["@types/*"] }).then(unused => {
+      if (unused.dependencies.length !== 0) {
+        log("Unused dependencies\n", unused.dependencies);
+      }
+      if (unused.devDependencies.length !== 0) {
+        log("Unused devDependencies\n", unused.devDependencies);
+      }
+      log(green("depcheck done"));
+    });
     break;
   case "gc":
     if (process.argv[3]) {
@@ -30,6 +43,27 @@ switch(process.argv[2]) {
   case "ng":
     spawn("npm ls -g --depth=0", inherit);
     break;
+  case "p":
+    fs.readFile("./package.json", "utf8", (err, jsonString) => {
+      const packageRegex = /\"scripts\": {\s\n?(.*?)\s*},/s;
+      const regexArray = packageRegex.exec(jsonString);
+      if (regexArray) {
+        const scripts = regexArray[1].replace(/\"|,/g, "");
+        const scriptsArray = scripts.split("\n");
+        const scriptsRegex = /(.*?)(: )(.*)/;
+        scriptsArray.forEach(script => {
+          const commandParts = scriptsRegex.exec(script);
+          if (commandParts) {
+            log(red(commandParts[1]) + commandParts[2] + yellow(commandParts[3]));
+          } else {
+            log(script);
+          }
+        });
+      } else {
+        log(red("No scripts found\n") + jsonString);
+      }
+    });
+    break;
   case "s":
     spawn("ng s --port=4201 --disable-host-check", inherit);
     break;
@@ -37,7 +71,15 @@ switch(process.argv[2]) {
     if (!process.argv[3]) {
       spawn("ng test", inherit);
     } else {
-      spawn("ng test --include=**\\" + process.argv[3] + "\\*.spec.ts", inherit);
+      if (!process.argv[4]) {
+        spawn("ng test --include=**\\" + process.argv[3] + "\\*.spec.ts", inherit);
+      } else {
+        if (process.argv[3] === "i" || process.argv[3] === "individual" || process.argv[3] === "file") {
+          spawn("ng test --include=**\\" + process.argv[4] + ".spec.ts", inherit);
+        } else {
+          spawn("ng test --include=**\\" + process.argv[3] + "\\*.spec.ts", inherit);
+        }
+      }
     }
     break;
   case "v":
@@ -45,13 +87,7 @@ switch(process.argv[2]) {
     break;
   case "y":
     log(red("Commands:"));
-    log(red("gadd: ") + yellow("yarn global add ") + magenta("package-name "));
-    log(red("yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
-    log(red("  ya: ") + yellow("yarn audit"));
-    log(red("  yg: ") + yellow("yarn global list"));
-    log(red("  yo: ") + yellow("yarn outdated"));
-    log(red("  yr: ") + yellow("yarn remove ") + magenta("package-name"));
-    log(red("  ys: ") + yellow("yarn start"));
+    yarnCommands();
     break;
   case "gadd":
     if (process.argv[3]) {
@@ -78,7 +114,7 @@ switch(process.argv[2]) {
   case "yo":
     spawn("yarn outdated", inherit).on("error", function(err) {
       if (err.code !== "ENOENT") {
-        console.log(err);
+        log(err);
       }
     });
     break;
@@ -100,14 +136,20 @@ switch(process.argv[2]) {
     log(red("   d: ") + yellow("depcheck ") + green("--ignores @types/*"));
     log(red("  ng: ") + yellow("npm list ") + green("-g --depth=0"));
     log(red("  gc: ") + yellow("git cherry-pick ") + magenta("commit-hash"));
+    log(red("   p: ") + yellow("Display scripts from package.json"));
     log(red("   s: ") + yellow("ng serve ") + green("--port=4201 --disable-host-check"));
     log(red("   t: ") + yellow("ng test ") + green("--include=**\\") + magenta("folder-name") + green("\\*.spec.ts"));
+    log(red(" t i: ") + yellow("ng test ") + green("--include=**\\") + magenta("file-name") + green(".spec.ts"));
     log(red("   v: ") + yellow("ng version"));
-    log(red("gadd: ") + yellow("yarn global add ") + magenta("package-name"));
-    log(red("yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
-    log(red("  ya: ") + yellow("yarn audit"));
-    log(red("  yg: ") + yellow("yarn global list"));
-    log(red("  yo: ") + yellow("yarn outdated"));
-    log(red("  yr: ") + yellow("yarn remove ") + magenta("package-name"));
-    log(red("  ys: ") + yellow("yarn start"));
+    yarnCommands();
+}
+
+function yarnCommands() {
+  log(red("gadd: ") + yellow("yarn global add ") + magenta("package-name"));
+  log(red("yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
+  log(red("  ya: ") + yellow("yarn audit"));
+  log(red("  yg: ") + yellow("yarn global list"));
+  log(red("  yo: ") + yellow("yarn outdated"));
+  log(red("  yr: ") + yellow("yarn remove ") + magenta("package-name"));
+  log(red("  ys: ") + yellow("yarn start"));
 }
