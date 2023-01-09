@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 import spawn from "cross-spawn";
 import chalk from "chalk";
-import path from "path";
-import {fileURLToPath} from "url";
-import depcheck from 'depcheck';
+import depcheck from "depcheck";
+import * as fs from "fs";
 
 const inherit = { stdio: "inherit" };
 const log = console.log;
@@ -17,9 +16,7 @@ switch(process.argv[2]) {
     spawn("ng build", inherit);
     break;
   case "c":
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    spawn("yarn cost-of-modules --no-install --include-dev", { stdio: "inherit", cwd: __dirname });
+    spawn("cost-of-modules --no-install --include-dev", inherit);
     break;
   case "d":
     depcheck(process.cwd(), { ignoreMatches: ["@types/*"] }).then(unused => {

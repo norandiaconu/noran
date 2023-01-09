@@ -1,6 +1,6 @@
 {
   "name": "noran",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "noran",
   "bin": {
     "n": "index.js"
@@ -9,7 +9,7 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.1.2",
-    "cost-of-modules": "^1.0.1",
+    "cost-of-modules2": "^1.0.2",
     "cross-spawn": "^7.0.3",
     "depcheck": "^1.4.3"
   },
