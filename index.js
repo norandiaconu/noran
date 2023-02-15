@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import spawn from "cross-spawn";
 import chalk from "chalk";
-import depcheck from "depcheck";
+import depcheck from "depcheck4";
 import * as fs from "fs";
 import path from "path";
 import {fileURLToPath} from "url";
@@ -13,8 +13,11 @@ const yellow = chalk.yellow;
 const magenta = chalk.magenta;
 const green = chalk.green;
 const cyan = chalk.cyan;
+const p2 = process.argv[2];
+const p3 = process.argv[3];
+let __filename, __dirname, fileInputs, param;
 
-switch(process.argv[2]) {
+switch(p2) {
   case "b":
     log(yellow("ng build"));
     spawn("ng build", inherit);
@@ -40,12 +43,23 @@ switch(process.argv[2]) {
     spawn("npm ls -g --depth=0 && yarn global list", inherit);
     break;
   case "gc":
-    if (process.argv[3]) {
-      spawn("git cherry-pick", [process.argv[3]], inherit);
+    if (p3) {
+      log(yellow("git cherry-pick ") + magenta(p3));
+      spawn("git cherry-pick", [p3], inherit);
     } else {
       log(red("Usage:"));
       log(red("   gc: ") + yellow("git cherry-pick ") + magenta("commit-hash"));
     }
+    break;
+  case "l":
+    readFile();
+    log(yellow("yarn link "), magenta(param));
+    spawn("yarn link " + param, inherit);
+    break;
+  case "ul":
+    readFile();
+    log(yellow("yarn unlink "), magenta(param));
+    spawn("yarn unlink " + param, inherit);
     break;
   case "p":
     fs.readFile("./package.json", "utf8", (err, jsonString) => {
@@ -69,47 +83,27 @@ switch(process.argv[2]) {
     });
     break;
   case "s":
-    let __filename, __dirname, fileInputs, folder, port;
-    __filename = fileURLToPath(import.meta.url);
-    __dirname = path.dirname(__filename);
-    fileInputs = fs.readFileSync(__dirname + "\\file.txt", "utf8").split('\n');
-    if (process.argv[3] === "c") {
-      folder = fileInputs[0];
-    } else if (process.argv[3] === "s") {
-      folder = fileInputs[1];
-    }
-    if (process.argv[3] === "c" || process.argv[3] === "s") {
-      if (process.argv[4] === "2") {
-        port = fileInputs[3];
-      } else {
-        port = fileInputs[2];
-      }
-      log(yellow("yarn --cwd ../" + cyan("folder") + " build && ng serve --disable-host-check --port=") + cyan("port"));
-      log(magenta(folder)) + log(magenta(port));
-      spawn("yarn --cwd ../" + folder + " build && ng serve --disable-host-check --port=" + port, inherit);
-    }
-
-    if (!process.argv[3]) {
-      port = fileInputs[2];
-    } else if(process.argv[3] === "2") {
-      port = fileInputs[3];
-    }
-    if (!process.argv[3] || process.argv[3] === "2") {
-      log(yellow("ng s --port=") + cyan("port ") + yellow("--disable-host-check"), magenta(port));
-      spawn("ng s --port=" + port + " --disable-host-check", inherit);
+    readFile();
+    if (!p3 || p3 === "1" || p3 === "2" || p3 === "3") {
+      log(yellow("ng s --port=") + cyan("port ") + yellow("--public-host=localhost:") + cyan("port ") + yellow("--disable-host-check"), magenta(param));
+      spawn("ng s --port=" + param + " --public-host=localhost:" + param + " --disable-host-check", inherit);
+    } else {
+      log(red("Usage:"));
+      log(red("   s: (1/2/3) ") + yellow("ng serve ") + green("--port=") + cyan("port ") + green("--public-host=localhost:")
+        + cyan("port ") + green("--disable-host-check"));
     }
     break;
   case "t":
-    if (!process.argv[3]) {
+    if (!p3) {
       spawn("ng test", inherit);
     } else {
       if (!process.argv[4]) {
-        spawn("ng test --include=**\\" + process.argv[3] + "\\*.spec.ts", inherit);
+        spawn("ng test --include=**\\" + p3 + "\\*.spec.ts", inherit);
       } else {
-        if (process.argv[3] === "i" || process.argv[3] === "individual" || process.argv[3] === "file") {
+        if (p3 === "i" || p3 === "individual" || p3 === "file") {
           spawn("ng test --include=**\\" + process.argv[4] + ".spec.ts", inherit);
         } else {
-          spawn("ng test --include=**\\" + process.argv[3] + "\\*.spec.ts", inherit);
+          spawn("ng test --include=**\\" + p3 + "\\*.spec.ts", inherit);
         }
       }
     }
@@ -123,16 +117,27 @@ switch(process.argv[2]) {
     yarnCommands();
     break;
   case "gadd":
-    if (process.argv[3]) {
-      spawn("yarn global add", [process.argv[3]], inherit);
+    if (p3) {
+      log(yellow("yarn global add ") + magenta(p3));
+      spawn("yarn global add", [p3], inherit);
     } else {
       log(red("Usage:"));
       log(red(" gadd: ") + yellow("yarn global add ") + magenta("package-name "));
     }
     break;
+  case "gr":
+    if (p3) {
+      log(yellow("yarn global remove ") + magenta(p3));
+      spawn("yarn global remove", [p3], inherit);
+    } else {
+      log(red("Usage:"));
+      log(red("   gr: ") + yellow("yarn global remove ") + magenta("package-name"));
+    }
+    break;
   case "yadd":
-    if (process.argv[3]) {
-      spawn("yarn add", [process.argv[3], "-D"], inherit);
+    if (p3) {
+      log(yellow("yarn add ") + magenta(p3));
+      spawn("yarn add", [p3, "-D"], inherit);
     } else {
       log(red("Usage:"));
       log(red(" yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
@@ -149,8 +154,9 @@ switch(process.argv[2]) {
     });
     break;
   case "yr":
-    if (process.argv[3]) {
-      spawn("yarn remove", [process.argv[3]], inherit);
+    if (p3) {
+      log(yellow("yarn remove ") + magenta(p3));
+      spawn("yarn remove", [p3], inherit);
     } else {
       log(red("Usage:"));
       log(red("   yr: ") + yellow("yarn remove ") + magenta("package-name"));
@@ -166,21 +172,48 @@ switch(process.argv[2]) {
     log(red("   d: ") + yellow("depcheck ") + green("--ignores @types/*"));
     log(red("   g: ") + yellow("npm ls ") + green("-g --depth=0") + yellow(" && yarn global list"));
     log(red("  gc: ") + yellow("git cherry-pick ") + magenta("commit-hash"));
+    log(red("   l: (c/s) ") + yellow("yarn link ") + cyan("package"));
+    log(red("  ul: (c/s) ") + yellow("yarn unlink ") + cyan("package"));
     log(red("   p: ") + yellow("Display scripts from package.json"));
-    log(red("   s: ") + yellow("ng serve ") + green("--port=") + cyan("port ") + green("--disable-host-check"));
-    log(red("    s (c/s) (#): ") + yellow("yarn --cwd ../") + cyan("folder") + yellow(" build && ng serve ") +
-      green("--disable-host-check --port=") + cyan("port"));
+    log(red("   s: (1/2/3) ") + yellow("ng serve ") + green("--port=") + cyan("port ") + green("--public-host=localhost:")
+      + cyan("port ") + green("--disable-host-check"));
     log(red("   t: ") + yellow("ng test ") + green("--include=**\\") + magenta("folder-name") + green("\\*.spec.ts"));
-    log(red("    t i: ") + yellow("ng test ") + green("--include=**\\") + magenta("file-name") + green(".spec.ts"));
+    log(red("   t: (i) ") + yellow("ng test ") + green("--include=**\\") + magenta("file-name") + green(".spec.ts"));
     log(red("   v: ") + yellow("ng version && yarn -v"));
     yarnCommands();
 }
 
+function readFile() {
+  __filename = fileURLToPath(import.meta.url);
+  __dirname = path.dirname(__filename);
+  fileInputs = fs.readFileSync(__dirname + "\\file.txt", "utf8").split('\n');
+
+  if (p2 === "l" || p2 === "ul") {
+    if (!p3) {
+      param = fileInputs[0];
+    } else if (p3 === "c") {
+      param = fileInputs[1];
+    } else if (p3 === "s") {
+      param = fileInputs[2];
+    }
+  }
+  if (p2 === "s") {
+    if (!p3 || p3 === "1") {
+      param = fileInputs[3];
+    } else if(p3 === "2") {
+      param = fileInputs[4];
+    } else if(p3 === "3") {
+      param = fileInputs[5];
+    }
+  }
+}
+
 function yarnCommands() {
   log(red("gadd: ") + yellow("yarn global add ") + magenta("package-name"));
+  log(red("  gr: ") + yellow("yarn global remove ") + magenta("package-name"));
   log(red("yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
+  log(red("  yr: ") + yellow("yarn remove ") + magenta("package-name"));
   log(red("  ya: ") + yellow("yarn audit"));
   log(red("  yo: ") + yellow("yarn outdated"));
-  log(red("  yr: ") + yellow("yarn remove ") + magenta("package-name"));
   log(red("  ys: ") + yellow("yarn start"));
 }
