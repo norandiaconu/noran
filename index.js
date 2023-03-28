@@ -28,7 +28,7 @@ switch(p2) {
     break;
   case "d":
     log(yellow("depcheck"));
-    depcheck(process.cwd(), { ignoreMatches: ["@types/*"] }).then(unused => {
+    depcheck(process.cwd(), { ignoreMatches: ["tslib", "@types/*", "@angular-eslint/*", "@typescript-eslint/*"] }).then(unused => {
       if (unused.dependencies.length !== 0) {
         log("Unused dependencies\n", unused.dependencies);
       }
@@ -112,6 +112,10 @@ switch(p2) {
     log(yellow("ng version && yarn -v"));
     spawn("ng v && yarn -v", inherit);
     break;
+  case "w":
+    log(yellow("yarn watch"));
+    spawn("yarn watch", inherit);
+    break;
   case "y":
     log(red("Commands:"));
     yarnCommands();
@@ -180,6 +184,7 @@ switch(p2) {
     log(red("   t: ") + yellow("ng test ") + green("--include=**\\") + magenta("folder-name") + green("\\*.spec.ts"));
     log(red("   t: (i) ") + yellow("ng test ") + green("--include=**\\") + magenta("file-name") + green(".spec.ts"));
     log(red("   v: ") + yellow("ng version && yarn -v"));
+    log(red("   w: ") + yellow("yarn watch"));
     yarnCommands();
 }
 
