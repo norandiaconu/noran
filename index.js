@@ -120,13 +120,13 @@ switch(p2) {
     log(red("Commands:"));
     yarnCommands();
     break;
-  case "gadd":
+  case "gad":
     if (p3) {
       log(yellow("yarn global add ") + magenta(p3));
       spawn("yarn global add", [p3], inherit);
     } else {
       log(red("Usage:"));
-      log(red(" gadd: ") + yellow("yarn global add ") + magenta("package-name "));
+      log(red("  gad: ") + yellow("yarn global add ") + magenta("package-name "));
     }
     break;
   case "gr":
@@ -138,19 +138,28 @@ switch(p2) {
       log(red("   gr: ") + yellow("yarn global remove ") + magenta("package-name"));
     }
     break;
-  case "yadd":
+  case "yad":
     if (p3) {
       log(yellow("yarn add ") + magenta(p3));
+      spawn("yarn add", [p3], inherit);
+    } else {
+      log(red("Usage:"));
+      log(red(" yadd: ") + yellow("yarn add ") + magenta("package-name"));
+    }
+    break;
+  case "yadd":
+    if (p3) {
+      log(yellow("yarn add ") + magenta(p3) + green(" -D"));
       spawn("yarn add", [p3, "-D"], inherit);
     } else {
       log(red("Usage:"));
       log(red(" yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
     }
     break;
-  case "ya":
+  case "a":
     spawn("yarn audit", inherit);
     break;
-  case "yo":
+  case "o":
     spawn("yarn outdated", inherit).on("error", function(err) {
       if (err.code !== "ENOENT") {
         log(err);
@@ -171,6 +180,7 @@ switch(p2) {
     break;
   default:
     log(red("Commands:"));
+    log(red("   a: ") + yellow("yarn audit"));
     log(red("   b: ") + yellow("ng build"));
     log(red("   c: ") + yellow("cost-of-modules ") + green("--no-install --include-dev"));
     log(red("   d: ") + yellow("depcheck ") + green("--ignores @types/*"));
@@ -178,6 +188,7 @@ switch(p2) {
     log(red("  gc: ") + yellow("git cherry-pick ") + magenta("commit-hash"));
     log(red("   l: (c/s) ") + yellow("yarn link ") + cyan("package"));
     log(red("  ul: (c/s) ") + yellow("yarn unlink ") + cyan("package"));
+    log(red("   o: ") + yellow("yarn outdated"));
     log(red("   p: ") + yellow("Display scripts from package.json"));
     log(red("   s: (1/2/3) ") + yellow("ng serve ") + green("--port=") + cyan("port ") + green("--public-host=localhost:")
       + cyan("port ") + green("--disable-host-check"));
@@ -214,11 +225,10 @@ function readFile() {
 }
 
 function yarnCommands() {
-  log(red("gadd: ") + yellow("yarn global add ") + magenta("package-name"));
+  log(red(" gad: ") + yellow("yarn global add ") + magenta("package-name"));
   log(red("  gr: ") + yellow("yarn global remove ") + magenta("package-name"));
+  log(red(" yad: ") + yellow("yarn add ") + magenta("package-name"));
   log(red("yadd: ") + yellow("yarn add ") + magenta("package-name ") + green("-D"));
   log(red("  yr: ") + yellow("yarn remove ") + magenta("package-name"));
-  log(red("  ya: ") + yellow("yarn audit"));
-  log(red("  yo: ") + yellow("yarn outdated"));
   log(red("  ys: ") + yellow("yarn start"));
 }
