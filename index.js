@@ -85,7 +85,8 @@ switch(p2) {
   case "s":
     readFile();
     if (!p3 || p3 === "1" || p3 === "2" || p3 === "3") {
-      log(yellow("ng s --port=") + cyan("port ") + yellow("--public-host=localhost:") + cyan("port ") + yellow("--disable-host-check"), magenta(param));
+      log(yellow("ng s --port=") + cyan("port ") + yellow("--public-host=localhost:") + cyan("port ")
+        + yellow("--disable-host-check"), magenta(param));
       spawn("ng s --port=" + param + " --public-host=localhost:" + param + " --disable-host-check", inherit);
     } else {
       log(red("Usage:"));
@@ -95,17 +96,12 @@ switch(p2) {
     break;
   case "t":
     if (!p3) {
+      log(yellow("ng test"));
       spawn("ng test", inherit);
     } else {
-      if (!process.argv[4]) {
-        spawn("ng test --include=**\\" + p3 + "\\*.spec.ts", inherit);
-      } else {
-        if (p3 === "i" || p3 === "individual" || p3 === "file") {
-          spawn("ng test --include=**\\" + process.argv[4] + ".spec.ts", inherit);
-        } else {
-          spawn("ng test --include=**\\" + p3 + "\\*.spec.ts", inherit);
-        }
-      }
+      log(yellow("ng test --include=**\\") + magenta(p3) + yellow(".component.spec.ts --include=**\\") + magenta(p3)
+        + yellow(".service.spec.ts --no-sandbox"));
+      spawn("ng test --code-coverage --include=**\\" + p3 + ".component.spec.ts --include=**\\"+ p3 + ".service.spec.ts", inherit);
     }
     break;
   case "v":
@@ -176,6 +172,7 @@ switch(p2) {
     }
     break;
   case "ys":
+    log(yellow("yarn start"));
     spawn("yarn start", inherit);
     break;
   default:
@@ -192,8 +189,7 @@ switch(p2) {
     log(red("   p: ") + yellow("Display scripts from package.json"));
     log(red("   s: (1/2/3) ") + yellow("ng serve ") + green("--port=") + cyan("port ") + green("--public-host=localhost:")
       + cyan("port ") + green("--disable-host-check"));
-    log(red("   t: ") + yellow("ng test ") + green("--include=**\\") + magenta("folder-name") + green("\\*.spec.ts"));
-    log(red("   t: (i) ") + yellow("ng test ") + green("--include=**\\") + magenta("file-name") + green(".spec.ts"));
+    log(red("   t: (file-name) ") + yellow("ng test ") + green("--include=**\\") + magenta("file-name") + green(".spec.ts"));
     log(red("   v: ") + yellow("ng version && yarn -v"));
     log(red("   w: ") + yellow("yarn watch"));
     yarnCommands();
